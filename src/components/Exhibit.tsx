@@ -1,9 +1,9 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, ArrowRightIcon, MapIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, MapIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
 import { Exhibit as ExhibitType, getExhibitById, getNextExhibit, exhibits, getCategoryById, getExhibitsByCategory } from '../utils/museumData';
 import { CodeFrame } from './CodeFrame';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollArea } from './ui/scroll-area';
 
 interface ExhibitProps {
@@ -24,11 +24,25 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
     );
   }
 
-  const nextExhibit = exhibit.next ? getExhibitById(exhibit.next) : undefined;
   const category = getCategoryById(exhibit.category);
   const allExhibits = category ? getExhibitsByCategory(category.id) : [];
   const currentIndex = allExhibits.findIndex(e => e.id === exhibitId);
   const prevExhibit = currentIndex > 0 ? allExhibits[currentIndex - 1] : undefined;
+  const nextExhibit = currentIndex < allExhibits.length - 1 ? allExhibits[currentIndex + 1] : undefined;
+  
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp' && prevExhibit) {
+        onNavigateToExhibit(prevExhibit.id);
+      } else if (e.key === 'ArrowDown' && nextExhibit) {
+        onNavigateToExhibit(nextExhibit.id);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [exhibitId, prevExhibit, nextExhibit, onNavigateToExhibit]);
   
   return (
     <motion.div 
@@ -62,8 +76,9 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
               className="flex items-center museum-button-outline"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
+              title="Previous Exhibit (Up Arrow)"
             >
-              <ArrowLeftIcon size={16} className="mr-2" />
+              <ArrowUpIcon size={16} className="mr-2" />
               <span>Previous</span>
             </motion.button>
           )}
@@ -74,9 +89,10 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
               className="flex items-center museum-button-outline"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
+              title="Next Exhibit (Down Arrow)"
             >
               <span>Next</span>
-              <ArrowRightIcon size={16} className="ml-2" />
+              <ArrowDownIcon size={16} className="ml-2" />
             </motion.button>
           )}
         </div>
@@ -123,6 +139,40 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
           {exhibit.description}
         </motion.p>
       </div>
+
+      {/* Bottom navigation buttons */}
+      <motion.div 
+        className="fixed bottom-8 left-0 right-0 flex justify-center items-center space-x-8 px-8"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.7, duration: 0.5 }}
+      >
+        {prevExhibit && (
+          <motion.button 
+            onClick={() => onNavigateToExhibit(prevExhibit.id)}
+            className="flex items-center museum-button-outline"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            title="Previous Exhibit (Up Arrow)"
+          >
+            <ArrowLeftIcon size={16} className="mr-2" />
+            <span>Previous: {prevExhibit.title}</span>
+          </motion.button>
+        )}
+        
+        {nextExhibit && (
+          <motion.button 
+            onClick={() => onNavigateToExhibit(nextExhibit.id)}
+            className="flex items-center museum-button-outline"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            title="Next Exhibit (Down Arrow)"
+          >
+            <span>Next: {nextExhibit.title}</span>
+            <ArrowRightIcon size={16} className="ml-2" />
+          </motion.button>
+        )}
+      </motion.div>
 
       {/* Right-side exhibit navigator */}
       <motion.div 
