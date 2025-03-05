@@ -54,7 +54,10 @@ export const Museum = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <MuseumMap onSelectCategory={handleSelectCategory} />
+            <MuseumMap 
+              onSelectCategory={handleSelectCategory} 
+              onSelectExhibit={handleSelectExhibit}
+            />
           </motion.div>
         )}
         

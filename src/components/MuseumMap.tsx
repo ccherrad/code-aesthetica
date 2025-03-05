@@ -1,17 +1,22 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { categories, Category, getWorkflowPath, getExhibitById } from '../utils/museumData';
+import { categories, getExhibitsByCategory } from '../utils/museumData';
 
 interface MuseumMapProps {
   onSelectCategory: (categoryId: string) => void;
+  onSelectExhibit: (exhibitId: string) => void;
 }
 
-export const MuseumMap = ({ onSelectCategory }: MuseumMapProps) => {
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+export const MuseumMap = ({ onSelectCategory, onSelectExhibit }: MuseumMapProps) => {
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const handleCategoryClick = (categoryId: string) => {
-    onSelectCategory(categoryId);
+    if (expandedCategory === categoryId) {
+      setExpandedCategory(null);
+    } else {
+      setExpandedCategory(categoryId);
+    }
   };
 
   return (
@@ -37,119 +42,66 @@ export const MuseumMap = ({ onSelectCategory }: MuseumMapProps) => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Explore our collection by category - follow the workflow connections between exhibits
+          Select a category to explore or browse all exhibits below
         </motion.p>
       </div>
 
-      <div className="relative flex-1 border border-museum-frame rounded-lg overflow-hidden bg-museum-soft-bg">
-        {/* Floor map base */}
-        <div className="absolute inset-0 p-6">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox="0 0 100 100" 
-            className="opacity-20"
-          >
-            <path d="M10,10 L90,10 L90,90 L10,90 Z" stroke="#86868B" strokeWidth="0.5" fill="none" />
-            <path d="M30,10 L30,90" stroke="#86868B" strokeWidth="0.2" fill="none" strokeDasharray="2,2" />
-            <path d="M50,10 L50,90" stroke="#86868B" strokeWidth="0.2" fill="none" strokeDasharray="2,2" />
-            <path d="M70,10 L70,90" stroke="#86868B" strokeWidth="0.2" fill="none" strokeDasharray="2,2" />
-            <path d="M10,30 L90,30" stroke="#86868B" strokeWidth="0.2" fill="none" strokeDasharray="2,2" />
-            <path d="M10,50 L90,50" stroke="#86868B" strokeWidth="0.2" fill="none" strokeDasharray="2,2" />
-            <path d="M10,70 L90,70" stroke="#86868B" strokeWidth="0.2" fill="none" strokeDasharray="2,2" />
-          </svg>
-        </div>
-
-        {/* Workflow connections between exhibits */}
-        <svg 
-          width="100%" 
-          height="100%" 
-          viewBox="0 0 100 100" 
-          className="absolute inset-0 pointer-events-none"
-        >
-          {categories.map((category) => {
-            const workflowPath = getWorkflowPath(category.id);
-            return workflowPath.slice(0, -1).map((exhibit, index) => {
-              const nextExhibit = workflowPath[index + 1];
-              if (!exhibit.position || !nextExhibit.position) return null;
-              
-              return (
-                <motion.path 
-                  key={`${exhibit.id}-to-${nextExhibit.id}`}
-                  d={`M${exhibit.position.x},${exhibit.position.y} L${nextExhibit.position.x},${nextExhibit.position.y}`}
-                  stroke={hoveredCategory === category.id ? "#007AFF" : "#86868B"}
-                  strokeWidth="1"
-                  strokeDasharray="4,2"
-                  fill="none"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ 
-                    pathLength: 1, 
-                    opacity: hoveredCategory === category.id ? 0.9 : 0.3 
-                  }}
-                  transition={{ 
-                    duration: 1.2, 
-                    delay: 0.8 + (index * 0.2) 
-                  }}
-                />
-              );
-            });
-          })}
-        </svg>
-
-        {/* Category markers */}
+      <div className="max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-6">
         {categories.map((category) => (
           <motion.div
             key={category.id}
-            className="absolute transform -translate-x-1/2 -translate-y-1/2"
-            style={{ 
-              left: `${category.position.x}%`, 
-              top: `${category.position.y}%` 
-            }}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.7 + (categories.indexOf(category) * 0.1) }}
+            className="museum-map-item"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 + categories.indexOf(category) * 0.1 }}
           >
-            <motion.div
-              className={`w-40 h-24 museum-map-item ${hoveredCategory === category.id ? 'ring-2 ring-museum-accent' : ''}`}
-              onMouseEnter={() => setHoveredCategory(category.id)}
-              onMouseLeave={() => setHoveredCategory(null)}
+            <div 
+              className="cursor-pointer"
               onClick={() => handleCategoryClick(category.id)}
-              whileHover={{ scale: 1.05, zIndex: 10 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <h3 className="font-medium mb-1">{category.name}</h3>
-              <p className="text-xs text-museum-caption">{category.description}</p>
-            </motion.div>
+              <h3 className="font-medium mb-2">{category.name}</h3>
+              <p className="text-sm text-museum-caption mb-4">{category.description}</p>
+            </div>
+            
+            {expandedCategory === category.id && (
+              <motion.div 
+                className="mt-4 space-y-3 pl-3 border-l border-museum-frame"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                transition={{ duration: 0.3 }}
+              >
+                {getExhibitsByCategory(category.id).map((exhibit) => (
+                  <motion.div 
+                    key={exhibit.id} 
+                    className="py-2"
+                    whileHover={{ x: 5, opacity: 0.8 }}
+                    onClick={() => onSelectExhibit(exhibit.id)}
+                  >
+                    <div className="flex items-center cursor-pointer">
+                      <div className="w-2 h-2 rounded-full bg-museum-accent mr-3"></div>
+                      <div>
+                        <p className="text-sm">{exhibit.title}</p>
+                        <p className="text-xs text-museum-caption">{exhibit.language}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+                
+                <motion.div 
+                  className="pt-2"
+                  whileHover={{ opacity: 0.8 }}
+                >
+                  <button 
+                    className="text-xs text-museum-accent"
+                    onClick={() => onSelectCategory(category.id)}
+                  >
+                    View all in category →
+                  </button>
+                </motion.div>
+              </motion.div>
+            )}
           </motion.div>
         ))}
-
-        {/* Exhibit markers (only show when category is hovered) */}
-        {hoveredCategory && getWorkflowPath(hoveredCategory).map((exhibit) => {
-          if (!exhibit.position) return null;
-          
-          return (
-            <motion.div
-              key={exhibit.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2"
-              style={{ 
-                left: `${exhibit.position.x}%`, 
-                top: `${exhibit.position.y}%` 
-              }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 0.8, opacity: 0.8 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <motion.div
-                className="w-8 h-8 rounded-full bg-museum-accent flex items-center justify-center 
-                          text-white text-xs font-medium border border-white cursor-pointer"
-                whileHover={{ scale: 1.1 }}
-              >
-                {getWorkflowPath(hoveredCategory).indexOf(exhibit) + 1}
-              </motion.div>
-            </motion.div>
-          );
-        })}
       </div>
     </motion.div>
   );
