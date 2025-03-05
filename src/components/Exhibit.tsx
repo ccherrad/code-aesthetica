@@ -1,7 +1,7 @@
 
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon, ArrowRightIcon, MapIcon } from 'lucide-react';
-import { Exhibit as ExhibitType, getExhibitById, exhibits } from '../utils/museumData';
+import { Exhibit as ExhibitType, getExhibitById, getNextExhibit, exhibits, getCategoryById } from '../utils/museumData';
 import { CodeFrame } from './CodeFrame';
 
 interface ExhibitProps {
@@ -21,10 +21,9 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
     );
   }
 
-  const exhibitIndex = exhibits.findIndex(e => e.id === exhibitId);
-  const prevExhibit = exhibits[exhibitIndex - 1];
-  const nextExhibit = exhibits[exhibitIndex + 1];
-
+  const nextExhibit = exhibit.next ? getExhibitById(exhibit.next) : undefined;
+  const category = getCategoryById(exhibit.category);
+  
   return (
     <motion.div 
       className="min-h-screen w-full px-4 py-16 flex flex-col"
@@ -49,6 +48,19 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
       </motion.div>
 
       <div className="max-w-4xl mx-auto w-full flex flex-col flex-1 pt-12">
+        {category && (
+          <motion.div
+            className="mb-4 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <span className="text-sm text-museum-caption">
+              {category.name} Collection
+            </span>
+          </motion.div>
+        )}
+        
         <motion.h1 
           className="text-2xl md:text-3xl font-light mb-12 text-center"
           initial={{ y: -20, opacity: 0 }}
@@ -82,28 +94,28 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          {prevExhibit ? (
-            <button 
-              onClick={() => onNavigateToExhibit(prevExhibit.id)}
-              className="flex items-center text-museum-caption hover:text-museum-foreground transition-colors"
-            >
-              <ArrowLeftIcon size={16} className="mr-2" />
-              <span>Previous</span>
-            </button>
-          ) : (
-            <div></div>
-          )}
+          <div></div>
           
           {nextExhibit ? (
-            <button 
+            <motion.button 
               onClick={() => onNavigateToExhibit(nextExhibit.id)}
-              className="flex items-center text-museum-caption hover:text-museum-foreground transition-colors"
+              className="flex items-center museum-button-outline"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <span>Next</span>
+              <span>Next Exhibit</span>
               <ArrowRightIcon size={16} className="ml-2" />
-            </button>
+            </motion.button>
           ) : (
-            <div></div>
+            <motion.button 
+              onClick={onReturnToMap}
+              className="flex items-center museum-button-outline"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span>Back to Map</span>
+              <MapIcon size={16} className="ml-2" />
+            </motion.button>
           )}
         </motion.div>
       </div>

@@ -91,6 +91,12 @@
            transition-all duration-300 hover:bg-opacity-90 focus:outline-none
            focus:ring-2 focus:ring-museum-accent focus:ring-opacity-50;
   }
+  
+  .museum-button-outline {
+    @apply px-4 py-2 border border-museum-frame text-museum-caption rounded-full
+           transition-all duration-300 hover:text-museum-foreground hover:border-museum-accent
+           focus:outline-none focus:ring-2 focus:ring-museum-accent focus:ring-opacity-50;
+  }
 
   .museum-map-item {
     @apply p-4 border border-museum-frame rounded-md bg-museum-background
