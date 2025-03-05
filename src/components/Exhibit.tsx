@@ -1,5 +1,5 @@
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, ArrowRightIcon, MapIcon } from 'lucide-react';
 import { Exhibit as ExhibitType, getExhibitById, getNextExhibit, exhibits, getCategoryById, getExhibitsByCategory } from '../utils/museumData';
 import { CodeFrame } from './CodeFrame';
