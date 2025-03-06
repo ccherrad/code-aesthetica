@@ -64,12 +64,12 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
     >
       {/* Top navigation bar */}
       <motion.div 
-        className="absolute top-8 left-0 right-0 flex justify-between items-center px-8"
+        className="absolute top-8 left-0 right-0 flex flex-col items-center justify-center px-8"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.5 }}
       >
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 mb-4">
           <button 
             onClick={onReturnToMap}
             className="flex items-center text-museum-caption hover:text-museum-foreground transition-colors"
