@@ -1,7 +1,15 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, ArrowRightIcon, MapIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
-import { Exhibit as ExhibitType, getExhibitById, getNextExhibit, exhibits, getCategoryById, getExhibitsByCategory } from '../utils/museumData';
+import { 
+  Exhibit as ExhibitType, 
+  getExhibitById, 
+  getNextExhibit, 
+  exhibits, 
+  getCategoryById, 
+  getExhibitsByCategory,
+  categories
+} from '../utils/museumData';
 import { CodeFrame } from './CodeFrame';
 import { useState, useEffect } from 'react';
 import { ScrollArea } from './ui/scroll-area';
@@ -25,7 +33,9 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
   }
 
   const category = getCategoryById(exhibit.category);
-  const allExhibits = category ? getExhibitsByCategory(category.id) : [];
+  
+  // Get all exhibits
+  const allExhibits = exhibits;
   const currentIndex = allExhibits.findIndex(e => e.id === exhibitId);
   const prevExhibit = currentIndex > 0 ? allExhibits[currentIndex - 1] : undefined;
   const nextExhibit = currentIndex < allExhibits.length - 1 ? allExhibits[currentIndex + 1] : undefined;
@@ -198,25 +208,32 @@ export const Exhibit = ({ exhibitId, onNavigateToExhibit, onReturnToMap }: Exhib
               transition={{ duration: 0.3 }}
             >
               <div className="p-4 border-b border-museum-frame">
-                <h3 className="text-sm font-medium">{category?.name} Exhibits</h3>
+                <h3 className="text-sm font-medium">All Exhibits</h3>
               </div>
               
               <ScrollArea className="h-[calc(100%-3rem)] p-2">
                 <div className="space-y-3 p-2">
-                  {allExhibits.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      className={`p-3 rounded-md cursor-pointer transition-colors ${
-                        item.id === exhibitId 
-                          ? 'bg-museum-soft-bg border border-museum-frame' 
-                          : 'hover:bg-museum-soft-bg/50'
-                      }`}
-                      whileHover={{ x: 5 }}
-                      onClick={() => onNavigateToExhibit(item.id)}
-                    >
-                      <p className="text-sm font-medium line-clamp-1">{item.title}</p>
-                      <p className="text-xs text-museum-caption mt-1">{item.language}</p>
-                    </motion.div>
+                  {categories.map((cat) => (
+                    <div key={cat.id} className="mb-4">
+                      <div className="text-xs uppercase font-medium text-museum-caption mb-2 px-2">
+                        {cat.name}
+                      </div>
+                      {getExhibitsByCategory(cat.id).map((item) => (
+                        <motion.div
+                          key={item.id}
+                          className={`p-3 rounded-md cursor-pointer transition-colors ${
+                            item.id === exhibitId 
+                              ? 'bg-museum-soft-bg border border-museum-frame' 
+                              : 'hover:bg-museum-soft-bg/50'
+                          }`}
+                          whileHover={{ x: 5 }}
+                          onClick={() => onNavigateToExhibit(item.id)}
+                        >
+                          <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                          <p className="text-xs text-museum-caption mt-1">{item.language}</p>
+                        </motion.div>
+                      ))}
+                    </div>
                   ))}
                 </div>
               </ScrollArea>
